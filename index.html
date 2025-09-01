@@ -1,0 +1,178 @@
+html
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Full Project — Portfolio + To‑Do + Product</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    header, footer { background:#222; color:#fff; padding:1rem; }
+    nav a { color:#fff; margin-right:1rem; text-decoration:none; }
+    .container { padding:1rem; }
+    .hero { text-align:center; padding:3rem 1rem; background:#f5f5f5; }
+    .btn { display:inline-block; padding:0.5rem 1rem; background:#0077cc; color:#fff; border-radius:4px; text-decoration:none; }
+    .btn--ghost { background:none; border:1px solid #0077cc; color:#0077cc; }
+    .grid { display:grid; gap:1rem; }
+    .projects { grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); }
+    .card { border:1px solid #ccc; padding:1rem; border-radius:6px; }
+    form label { display:block; margin:0.5rem 0; }
+    input, textarea, select { width:100%; padding:0.5rem; margin-top:0.25rem; }
+    .list { list-style:none; padding:0; }
+    .list li { border-bottom:1px solid #ddd; padding:0.5rem 0; }
+    .products { grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); }
+    .muted { color:#666; font-size:0.9rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Full Project Demo</h1>
+    <nav>
+      <a href="#portfolio">Portfolio</a>
+      <a href="#todo">To‑Do</a>
+      <a href="#products">Products</a>
+    </nav>
+  </header>
+
+  <!-- Portfolio Section -->
+  <section id="portfolio" class="container">
+    <div class="hero">
+      <h2>My Portfolio</h2>
+      <p>Building clean, fast, accessible web apps with HTML, CSS, and JavaScript.</p>
+    </div>
+    <h3>Projects</h3>
+    <div class="grid projects">
+      <article class="card">
+        <h4>To‑Do App</h4>
+        <p>Vanilla JS + localStorage.</p>
+        <a href="#todo" class="btn">See Demo</a>
+      </article>
+      <article class="card">
+        <h4>Product Listing</h4>
+        <p>Filters + sorting + responsive grid.</p>
+        <a href="#products" class="btn">See Demo</a>
+      </article>
+    </div>
+  </section>
+
+  <!-- To-Do Section -->
+  <section id="todo" class="container">
+    <h2>To‑Do / Notes</h2>
+    <form id="todo-form">
+      <input id="todo-input" placeholder="Add a task…" required />
+      <button type="submit" class="btn">Add</button>
+    </form>
+    <div class="filters">
+      <select id="status-filter">
+        <option value="all">All</option>
+        <option value="active">Active</option>
+        <option value="done">Completed</option>
+      </select>
+      <input id="search" placeholder="Search…" />
+    </div>
+    <ul id="todo-list" class="list"></ul>
+    <p id="empty" class="muted">No items yet. Add your first task!</p>
+  </section>
+
+  <!-- Products Section -->
+  <section id="products" class="container">
+    <h2>Products</h2>
+    <div class="controls">
+      <fieldset>
+        <legend>Category</legend>
+        <label><input type="checkbox" value="phones" class="cat"> Phones</label>
+        <label><input type="checkbox" value="laptops" class="cat"> Laptops</label>
+        <label><input type="checkbox" value="audio" class="cat"> Audio</label>
+      </fieldset>
+      <label>Max Price ₹ <input type="range" id="price" min="0" max="100000" value="100000"></label>
+      <label>Sort
+        <select id="sort">
+          <option value="price-asc">Price ↑</option>
+          <option value="price-desc">Price ↓</option>
+          <option value="rating-desc">Rating ↓</option>
+          <option value="name-asc">Name A→Z</option>
+        </select>
+      </label>
+      <button id="clear" type="button" class="btn btn--ghost">Clear All</button>
+    </div>
+    <p id="active-filters" class="muted"></p>
+    <div id="grid" class="grid products"></div>
+    <p id="no-results" class="muted" hidden>No results. Try adjusting filters.</p>
+  </section>
+
+  <footer>
+    <p>© 2025 MyName — Combined Project Demo</p>
+  </footer>
+
+  <script>
+    // --- To-Do App Logic ---
+    const form = document.getElementById('todo-form');
+    const input = document.getElementById('todo-input');
+    const list = document.getElementById('todo-list');
+    const empty = document.getElementById('empty');
+    const filter = document.getElementById('status-filter');
+    const search = document.getElementById('search');
+    let todos = JSON.parse(localStorage.getItem('todos')||'[]');
+
+    function renderTodos(){
+      list.innerHTML='';
+      const q = search.value.toLowerCase();
+      const f = filter.value;
+      let visible = 0;
+      todos.forEach((t,i)=>{
+        if((f==='active' && t.done) || (f==='done' && !t.done)) return;
+        if(!t.text.toLowerCase().includes(q)) return;
+        visible++;
+        const li=document.createElement('li');
+        li.innerHTML=`<input type="checkbox" ${t.done?'checked':''}> ${t.text} <button>x</button>`;
+        li.querySelector('input').onchange=()=>{t.done=!t.done;save();};
+        li.querySelector('button').onclick=()=>{todos.splice(i,1);save();};
+        list.appendChild(li);
+      });
+      empty.style.display = visible? 'none':'block';
+    }
+    function save(){localStorage.setItem('todos',JSON.stringify(todos));renderTodos();}
+    form.onsubmit=e=>{e.preventDefault();todos.push({text:input.value,done:false});input.value='';save();};
+    filter.onchange=renderTodos; search.oninput=renderTodos;
+    renderTodos();
+
+    // --- Product Listing Logic ---
+    const products=[
+      {id:1,name:'Phone X',category:'phones',price:50000,rating:4.5},
+      {id:2,name:'Laptop Z',category:'laptops',price:80000,rating:4.8},
+      {id:3,name:'Headphones',category:'audio',price:2000,rating:4.2},
+      {id:4,name:'Phone Y',category:'phones',price:30000,rating:4.0},
+      {id:5,name:'Speaker',category:'audio',price:5000,rating:4.6},
+    ];
+    const grid=document.getElementById('grid');
+    const price=document.getElementById('price');
+    const sort=document.getElementById('sort');
+    const clear=document.getElementById('clear');
+    const cats=document.querySelectorAll('.cat');
+    const noResults=document.getElementById('no-results');
+    const activeFilters=document.getElementById('active-filters');
+
+    function renderProducts(){
+      grid.innerHTML='';
+      let filtered=products.filter(p=>p.price<=price.value);
+      const catValues=[...cats].filter(c=>c.checked).map(c=>c.value);
+      if(catValues.length) filtered=filtered.filter(p=>catValues.includes(p.category));
+      if(sort.value==='price-asc') filtered.sort((a,b)=>a.price-b.price);
+      if(sort.value==='price-desc') filtered.sort((a,b)=>b.price-a.price);
+      if(sort.value==='rating-desc') filtered.sort((a,b)=>b.rating-a.rating);
+      if(sort.value==='name-asc') filtered.sort((a,b)=>a.name.localeCompare(b.name));
+      filtered.forEach(p=>{
+        const div=document.createElement('div');
+        div.className='card';
+        div.innerHTML=`<h4>${p.name}</h4><p>₹${p.price} • ⭐${p.rating}</p>`;
+        grid.appendChild(div);
+      });
+      noResults.hidden=!!filtered.length;
+      activeFilters.textContent=`Filters: Price ≤ ₹${price.value}${catValues.length? ", Categories: "+catValues.join(', '):''}`;
+    }
+    [price,sort,clear,...cats].forEach(el=>el.oninput=renderProducts);
+    clear.onclick=()=>{price.value=100000;sort.value='price-asc';cats.forEach(c=>c.checked=false);renderProducts();};
+    renderProducts();
+  </script>
+</body>
+</html>
